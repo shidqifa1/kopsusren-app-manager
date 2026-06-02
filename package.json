@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
+    "@vercel/speed-insights": "^2.0.0",
     "drizzle-orm": "beta",
     "postgres": "^3.4.9"
   },
