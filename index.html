@@ -854,15 +854,14 @@ function importPenjualanCSV(event) {
     const rows = content.split(/\r?\n/);
     const headers = rows[0].split(',');
     
-    // Mapping kolom (sesuai contoh file lo)
     let imported = 0;
     let errors = 0;
+    let lastValidTanggal = ""; // 💡 PINTER 1: Penampung tanggal terakhir
     
     for (let i = 1; i < rows.length; i++) {
       if (!rows[i].trim()) continue;
       const cols = rows[i].split(',');
       
-      // Cari indeks kolom
       const tglIndex = headers.findIndex(h => h.toLowerCase().includes('tanggal'));
       const custIndex = headers.findIndex(h => h.toLowerCase().includes('customer'));
       const kelasIndex = headers.findIndex(h => h.toLowerCase().includes('kelas'));
@@ -876,30 +875,47 @@ function importPenjualanCSV(event) {
         return;
       }
       
-      const tgl = cols[tglIndex]?.trim();
-      const customer = custIndex !== -1 ? cols[custIndex]?.trim() : 'Unknown';
-      const kelas = kelasIndex !== -1 ? cols[kelasIndex]?.trim() : '';
+      let tgl = cols[tglIndex]?.trim();
       const menuNama = cols[menuIndex]?.trim();
-      const hargaSatuan = parseFloat(cols[hargaIndex]?.replace(/[^0-9.-]/g, '')) || 0;
+      
+      // Skip baris kosong/pembatas secara damai
       if (!menuNama) {
-       continue; 
+        continue; 
       }
-      const metode = metodeIndex !== -1 ? cols[metodeIndex]?.trim() : 'Cash';
-      const keterangan = ketIndex !== -1 ? cols[ketIndex]?.trim() : '';
+      
+      // 💡 PINTER 2: Logika Sticky Date (Kalau tanggal kosong, pake tanggal baris atasnya)
+      if (tgl) {
+        lastValidTanggal = tgl;
+      } else {
+        tgl = lastValidTanggal;
+      }
       
       // Cari menuId berdasarkan nama
       const menu = state.menu.find(m => m.nama.toLowerCase() === menuNama?.toLowerCase());
       if (!menu) {
-        // TAMBAHKAN BARIS INI BIAR MUNCUL DI CONSOLE:
         console.warn(`❌ Menu di CSV gak terdaftar di aplikasi: "${menuNama}" (Baris ke-${i + 1})`);
-        
         errors++;
         continue;
       }
-            
+      
+      // 💡 PINTER 3: Fallback Nama Kosong biar gak bolong di UI
+      const rawCustomer = custIndex !== -1 ? cols[custIndex]?.trim() : '';
+      const customer = rawCustomer || 'Anonim'; 
+      const kelas = kelasIndex !== -1 ? cols[kelasIndex]?.trim() : '';
+      
+      // 💡 PINTER 4: Fallback Harga Kosong (Kalau di CSV harganya 0/kosong, ambil harga default dari aplikasi)
+      let hargaSatuan = parseFloat(cols[hargaIndex]?.replace(/[^0-9.-]/g, '')) || 0;
+      if (hargaSatuan === 0) {
+        // Ambil dari data produk aplikasi (sesuaikan properti harga lu, misal menu.harga atau menu.hargaJual)
+        hargaSatuan = menu.harga || menu.hargaJual || 0; 
+      }
+      
+      const metode = metodeIndex !== -1 ? cols[metodeIndex]?.trim() : 'Cash';
+      const keterangan = ketIndex !== -1 ? cols[ketIndex]?.trim() : '';
+      
       // Hitung modal berdasarkan resep menu
       const modalPerCup = hitungModalMenu(menu);
-      const jumlah = 1; // default 1 cup, bisa disesuaikan
+      const jumlah = 1; 
       const totalHarga = hargaSatuan * jumlah;
       const modal = modalPerCup * jumlah;
       
