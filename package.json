@@ -3,6 +3,7 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
+    "@vercel/analytics": "^2.0.1",
     "drizzle-orm": "beta",
     "postgres": "^3.4.9"
   },
