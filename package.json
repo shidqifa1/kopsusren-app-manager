@@ -1,0 +1,13 @@
+{
+  "name": "kopi-manager",
+  "version": "1.0.0",
+  "type": "module",
+  "dependencies": {
+    "@netlify/database": "latest",
+    "drizzle-orm": "beta"
+  },
+  "devDependencies": {
+    "@netlify/functions": "^2.0.0",
+    "drizzle-kit": "beta"
+  }
+}
