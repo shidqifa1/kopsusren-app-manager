@@ -881,16 +881,22 @@ function importPenjualanCSV(event) {
       const kelas = kelasIndex !== -1 ? cols[kelasIndex]?.trim() : '';
       const menuNama = cols[menuIndex]?.trim();
       const hargaSatuan = parseFloat(cols[hargaIndex]?.replace(/[^0-9.-]/g, '')) || 0;
+      if (!menuNama) {
+       continue; 
+      }
       const metode = metodeIndex !== -1 ? cols[metodeIndex]?.trim() : 'Cash';
       const keterangan = ketIndex !== -1 ? cols[ketIndex]?.trim() : '';
       
       // Cari menuId berdasarkan nama
       const menu = state.menu.find(m => m.nama.toLowerCase() === menuNama?.toLowerCase());
       if (!menu) {
+        // TAMBAHKAN BARIS INI BIAR MUNCUL DI CONSOLE:
+        console.warn(`❌ Menu di CSV gak terdaftar di aplikasi: "${menuNama}" (Baris ke-${i + 1})`);
+        
         errors++;
         continue;
       }
-      
+            
       // Hitung modal berdasarkan resep menu
       const modalPerCup = hitungModalMenu(menu);
       const jumlah = 1; // default 1 cup, bisa disesuaikan
@@ -1472,7 +1478,7 @@ function renderRiwayat() {
           <div class="jual-item-head">
             <div>
               <div class="jual-customer">${p.customer}${p.kelas?' ('+p.kelas+')':''}</div>
-              <div class="jual-meta">${p.menuNama} · ${p.bayar} · ${p.waktu}</div>
+              <div class="jual-meta">${p.menuNama} · ${p.bayar}</div>
             </div>
             <div class="jual-harga">${rp(p.totalHarga)}</div>
           </div>
