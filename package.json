@@ -3,11 +3,11 @@
   "version": "1.0.0",
   "type": "module",
   "dependencies": {
-    "@netlify/database": "latest",
-    "drizzle-orm": "beta"
+    "drizzle-orm": "beta",
+    "postgres": "^3.4.9"
   },
   "devDependencies": {
-    "@netlify/functions": "^2.0.0",
+    "@vercel/node": "^5.8.9",
     "drizzle-kit": "beta"
   }
 }

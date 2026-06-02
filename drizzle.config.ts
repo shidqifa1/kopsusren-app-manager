@@ -1,7 +1,11 @@
+/// <reference types="node" />
 import { defineConfig } from "drizzle-kit";
 
 export default defineConfig({
-  dialect: "postgresql",
   schema: "./db/schema.ts",
-  out: "netlify/database/migrations",
+  out: "./db/migrations", // Kita pindahin folder migration dari Netlify ke folder db biar rapi
+  dialect: "postgresql",   // Kita ubah dialect-nya ke postgresql murni
+  dbCredentials: {
+    url: process.env.DATABASE_URL || "",
+  },
 });
