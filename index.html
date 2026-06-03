@@ -841,6 +841,54 @@
 </div>
 
 <script>
+
+// ====== TARUH DI BAWAH TAG <script type="module"> ======
+function prosesDanUrutkanFormatCSV(arrayDataCSV) {
+  const kamusBulan = {
+    'januari': 'January', 'februari': 'February', 'maret': 'March',
+    'april': 'April', 'mei': 'May', 'juni': 'June',
+    'juli': 'July', 'agustus': 'August', 'september': 'September',
+    'oktober': 'October', 'november': 'November', 'desember': 'December'
+  };
+
+  const hasilDataBersih = [];
+
+  arrayDataCSV.forEach(row => {
+    // 1. Skip baris hantu/kosong (kayak yang cuma ",,,,,Cash")
+    if (!row.Customer || row.Customer.trim() === "" || !row.Tanggal || row.Tanggal.trim() === "") {
+      return; 
+    }
+
+    // 2. Fix bug nama bulan Indonesia (Mei -> May)
+    let teksTanggal = row.Tanggal.toLowerCase().trim();
+    Object.keys(kamusBulan).forEach(bulanIndo => {
+      if (teksTanggal.includes(bulanIndo)) {
+        teksTanggal = teksTanggal.replace(bulanIndo, kamusBulan[bulanIndo]);
+      }
+    });
+
+    const objekTanggal = new Date(teksTanggal);
+    if (isNaN(objekTanggal.getTime())) return; 
+
+    // Sesuaikan mapping properti sesuai kolom CSV lu
+    hasilDataBersih.push({
+      tanggalObjek: objekTanggal, 
+      tanggal: row.Tanggal,       
+      customer: row.Customer,
+      kelas: row.Kelas || '-',
+      menu: row.Menu,
+      hargaSatuan: parseInt(row['Harga Satuan'] || row.HargaSatuan || 0),
+      keterangan: row.Keterangan || '',
+      metodeBayar: row['Metode Bayar'] || row.MetodeBayar || 'Cash'
+    });
+  });
+
+  // 3. URUTKAN: Yang paling baru di atas, terlama di bawah
+  hasilDataBersih.sort((a, b) => b.tanggalObjek - a.tanggalObjek);
+
+  return hasilDataBersih;
+}
+// ========================================================
 // ============= DATA DEFAULT =============
 
 // ============= IMPORT DATA HISTORIS =============
@@ -857,6 +905,29 @@ function importPenjualanCSV(event) {
     let imported = 0;
     let errors = 0;
     let lastValidTanggal = ""; // 💡 PINTER 1: Penampung tanggal terakhir
+    
+    // 🛠️ TAMBAHAN: Kamus pembantu untuk mengubah "13 Mei 2026" -> "2026-05-13" (Format Standar)
+    const kamusBulan = {
+      'januari': '01', 'jan': '01', 'februari': '02', 'feb': '02',
+      'maret': '03', 'mar': '03', 'april': '04', 'apr': '04',
+      'mei': '05', 'juni': '06', 'jun': '06', 'juli': '07', 'jul': '07',
+      'agustus': '08', 'agt': '08', 'september': '09', 'sep': '09',
+      'oktober': '10', 'okt': '10', 'november': '11', 'nov': '11', 'desember': '12', 'des': '12'
+    };
+
+    function formatTanggalKeStandar(teksTgl) {
+      if (!teksTgl) return '';
+      const bagian = teksTgl.toLowerCase().replace(/,/g, '').trim().split(/\s+/);
+      if (bagian.length >= 3) {
+        const hari = bagian[0].padStart(2, '0');
+        const bulanTeks = bagian[1];
+        const tahun = bagian[2];
+        if (kamusBulan[bulanTeks]) {
+          return `${tahun}-${kamusBulan[bulanTeks]}-${hari}`; // Mengubah ke format YYYY-MM-DD
+        }
+      }
+      return teksTgl; 
+    }
     
     for (let i = 1; i < rows.length; i++) {
       if (!rows[i].trim()) continue;
@@ -906,7 +977,6 @@ function importPenjualanCSV(event) {
       // 💡 PINTER 4: Fallback Harga Kosong (Kalau di CSV harganya 0/kosong, ambil harga default dari aplikasi)
       let hargaSatuan = parseFloat(cols[hargaIndex]?.replace(/[^0-9.-]/g, '')) || 0;
       if (hargaSatuan === 0) {
-        // Ambil dari data produk aplikasi (sesuaikan properti harga lu, misal menu.harga atau menu.hargaJual)
         hargaSatuan = menu.harga || menu.hargaJual || 0; 
       }
       
@@ -919,9 +989,12 @@ function importPenjualanCSV(event) {
       const totalHarga = hargaSatuan * jumlah;
       const modal = modalPerCup * jumlah;
       
+      // 🛠️ PERBAIKAN: Tanggal diproses dulu biar gak jadi NaN/Eror saat dibaca dashboard
+      const tanggalValid = formatTanggalKeStandar(tgl);
+
       const transaksi = {
         id: Date.now().toString() + Math.random(),
-        tanggal: tgl,
+        tanggal: tanggalValid, // <-- Pake tanggal standar YYYY-MM-DD
         waktu: '00:00',
         customer: customer,
         kelas: kelas,
@@ -937,14 +1010,23 @@ function importPenjualanCSV(event) {
       
       state.penjualan.push(transaksi);
       imported++;
+    } // 🏁 Akhir dari looping FOR
+
+    // 🔥 🛠️ UTAMA: URUTKAN SEKALIGUS SETELAH IMPORT SELESAI
+    // Yang paling baru berada di paling atas, yang lama di paling bawah
+    state.penjualan.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
+
+    // 🔄 Simpan data dan segarkan tampilan UI aplikasi lu secara otomatis
+    if (typeof saveState === 'function') saveState();
+    if (typeof renderRiwayat === 'function') renderRiwayat();
+    if (typeof renderDashboard === 'function') renderDashboard();
+
+    // Tampilkan log rangkuman sukses di layar browser
+    const logEl = document.getElementById('importLog');
+    if (logEl) {
+      logEl.innerHTML = `<span style="color:var(--hijau)">✅ Berhasil mengimpor ${imported} data penjualan! Baris kosong aman dilompati.</span>`;
     }
-    
-    saveState();
-    document.getElementById('importLog').innerHTML = `<span style="color:var(--hijau)">✅ Berhasil import ${imported} transaksi (${errors} gagal)</span>`;
-    renderRiwayat();
-    renderDashboard();
-    showToast(`Import selesai: ${imported} transaksi`);
-  };
+  }; // 🏁 Akhir dari reader.onload
   reader.readAsText(file, 'UTF-8');
   event.target.value = '';
 }
