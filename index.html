@@ -905,13 +905,14 @@ function importPenjualanCSV(event) {
   reader.onload = function(e) {
     const content = e.target.result;
     const rows = content.split(/\r?\n/);
-    const headers = rows[0].split(',');
+    
+    // 🛠️ FIX 1: Trim semua header biar spasi hantu kayak " Tanggal" ilang bersih
+    const headers = rows[0].split(',').map(h => h.trim().toLowerCase());
     
     let imported = 0;
     let errors = 0;
-    let lastValidTanggal = ""; // 💡 PINTER 1: Penampung tanggal terakhir
+    let lastValidTanggal = ""; 
     
-    // 🛠️ TAMBAHAN: Kamus pembantu untuk mengubah "13 Mei 2026" -> "2026-05-13" (Format Standar)
     const kamusBulan = {
       'januari': '01', 'jan': '01', 'februari': '02', 'feb': '02',
       'maret': '03', 'mar': '03', 'april': '04', 'apr': '04',
@@ -928,38 +929,42 @@ function importPenjualanCSV(event) {
         const bulanTeks = bagian[1];
         const tahun = bagian[2];
         if (kamusBulan[bulanTeks]) {
-          return `${tahun}-${kamusBulan[bulanTeks]}-${hari}`; // Mengubah ke format YYYY-MM-DD
+          return `${tahun}-${kamusBulan[bulanTeks]}-${hari}`;
         }
       }
       return teksTgl; 
     }
     
+    // Cari indeks kolom berdasarkan nama header yang udah bersih
+    const tglIndex = headers.findIndex(h => h.includes('tanggal'));
+    const custIndex = headers.findIndex(h => h.includes('customer'));
+    const kelasIndex = headers.findIndex(h => h.includes('kelas'));
+    const menuIndex = headers.findIndex(h => h.includes('menu'));
+    const hargaIndex = headers.findIndex(h => h.includes('harga'));
+    const metodeIndex = headers.findIndex(h => h.includes('metode'));
+    const ketIndex = headers.findIndex(h => h.includes('keterangan'));
+    
+    if (tglIndex === -1 || menuIndex === -1) {
+      document.getElementById('importLog').innerHTML = '<span style="color:var(--merah)">❌ Format CSV tidak sesuai (butuh kolom Tanggal & Menu)</span>';
+      return;
+    }
+    
     for (let i = 1; i < rows.length; i++) {
-      if (!rows[i].trim()) continue;
+      // 🛠️ FIX 2: Jika baris bener-bener kosong atau cuma berisi koma doang (,,,,,,), LANGSUNG SKIP
+      const barisMentah = rows[i].replace(/,/g, '').trim();
+      if (!barisMentah) continue;
+      
       const cols = rows[i].split(',');
-      
-      const tglIndex = headers.findIndex(h => h.toLowerCase().includes('tanggal'));
-      const custIndex = headers.findIndex(h => h.toLowerCase().includes('customer'));
-      const kelasIndex = headers.findIndex(h => h.toLowerCase().includes('kelas'));
-      const menuIndex = headers.findIndex(h => h.toLowerCase().includes('menu'));
-      const hargaIndex = headers.findIndex(h => h.toLowerCase().includes('harga'));
-      const metodeIndex = headers.findIndex(h => h.toLowerCase().includes('metode'));
-      const ketIndex = headers.findIndex(h => h.toLowerCase().includes('keterangan'));
-      
-      if (tglIndex === -1 || menuIndex === -1) {
-        document.getElementById('importLog').innerHTML = '<span style="color:var(--merah)">❌ Format CSV tidak sesuai (butuh kolom Tanggal & Menu)</span>';
-        return;
-      }
       
       let tgl = cols[tglIndex]?.trim();
       const menuNama = cols[menuIndex]?.trim();
       
-      // Skip baris kosong/pembatas secara damai
-      if (!menuNama) {
+      // 🛠️ FIX 3: Skip jika baris tersebut secara tidak sengaja menduplikasi teks header "Menu"
+      if (!menuNama || menuNama.toLowerCase() === 'menu') {
         continue; 
       }
       
-      // 💡 PINTER 2: Logika Sticky Date (Kalau tanggal kosong, pake tanggal baris atasnya)
+      // 💡 PINTER 2: Logika Sticky Date
       if (tgl) {
         lastValidTanggal = tgl;
       } else {
@@ -967,19 +972,19 @@ function importPenjualanCSV(event) {
       }
       
       // Cari menuId berdasarkan nama
-      const menu = state.menu.find(m => m.nama.toLowerCase() === menuNama?.toLowerCase());
+      const menu = state.menu.find(m => m.nama.toLowerCase() === menuNama.toLowerCase());
       if (!menu) {
         console.warn(`❌ Menu di CSV gak terdaftar di aplikasi: "${menuNama}" (Baris ke-${i + 1})`);
         errors++;
         continue;
       }
       
-      // 💡 PINTER 3: Fallback Nama Kosong biar gak bolong di UI
+      // 💡 PINTER 3: Fallback Nama Kosong
       const rawCustomer = custIndex !== -1 ? cols[custIndex]?.trim() : '';
       const customer = rawCustomer || 'Anonim'; 
       const kelas = kelasIndex !== -1 ? cols[kelasIndex]?.trim() : '';
       
-      // 💡 PINTER 4: Fallback Harga Kosong (Kalau di CSV harganya 0/kosong, ambil harga default dari aplikasi)
+      // 💡 PINTER 4: Fallback Harga Kosong
       let hargaSatuan = parseFloat(cols[hargaIndex]?.replace(/[^0-9.-]/g, '')) || 0;
       if (hargaSatuan === 0) {
         hargaSatuan = menu.harga || menu.hargaJual || 0; 
@@ -994,12 +999,12 @@ function importPenjualanCSV(event) {
       const totalHarga = hargaSatuan * jumlah;
       const modal = modalPerCup * jumlah;
       
-      // 🛠️ PERBAIKAN: Tanggal diproses dulu biar gak jadi NaN/Eror saat dibaca dashboard
+      // 🛠️ PERBAIKAN: Format tanggal ke standar YYYY-MM-DD
       const tanggalValid = formatTanggalKeStandar(tgl);
 
       const transaksi = {
         id: Date.now().toString() + Math.random(),
-        tanggal: tanggalValid, // <-- Pake tanggal standar YYYY-MM-DD
+        tanggal: tanggalValid,
         waktu: '00:00',
         customer: customer,
         kelas: kelas,
@@ -1018,10 +1023,9 @@ function importPenjualanCSV(event) {
     } // 🏁 Akhir dari looping FOR
 
     // 🔥 🛠️ UTAMA: URUTKAN SEKALIGUS SETELAH IMPORT SELESAI
-    // Yang paling baru berada di paling atas, yang lama di paling bawah
     state.penjualan.sort((a, b) => new Date(b.tanggal) - new Date(a.tanggal));
 
-    // 🔄 Simpan data dan segarkan tampilan UI aplikasi lu secara otomatis
+    // 🔄 Simpan data dan segarkan tampilan UI aplikasi
     if (typeof saveState === 'function') saveState();
     if (typeof renderRiwayat === 'function') renderRiwayat();
     if (typeof renderDashboard === 'function') renderDashboard();
@@ -1029,9 +1033,10 @@ function importPenjualanCSV(event) {
     // Tampilkan log rangkuman sukses di layar browser
     const logEl = document.getElementById('importLog');
     if (logEl) {
-      logEl.innerHTML = `<span style="color:var(--hijau)">✅ Berhasil mengimpor ${imported} data penjualan! Baris kosong aman dilompati.</span>`;
+      logEl.innerHTML = `<span style="color:var(--hijau)">✅ Berhasil mengimpor ${imported} data penjualan bersih!</span>`;
     }
   }; // 🏁 Akhir dari reader.onload
+  
   reader.readAsText(file, 'UTF-8');
   event.target.value = '';
 }
