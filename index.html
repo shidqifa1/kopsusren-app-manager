@@ -83,10 +83,9 @@
   </div>
 </div>
 
-<!-- BOTTOM SHEET NAV (iOS-style) -->
+<!-- LEFT DRAWER NAV -->
 <div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
 <div class="sheet" id="sheet">
-  <div class="sheet-handle"></div>
   <div class="sheet-header">
     <div class="sheet-title">☕ Menu</div>
     <button class="sheet-close" onclick="closeSheet()">✕</button>
@@ -2319,15 +2318,15 @@ function downloadCSV(rows, filename) {
   URL.revokeObjectURL(url);
 }
 
-// ============= SWIPE GESTURE DRAWER =============
+// ============= SWIPE GESTURE LEFT DRAWER =============
 function initSwipe() {
-  let touchStartY = 0;
+  let touchStartX = 0;
   let touchStartTime = 0;
 
   document.addEventListener('touchstart', e => {
     const target = e.target;
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') return;
-    touchStartY = e.touches[0].clientY;
+    touchStartX = e.touches[0].clientX;
     touchStartTime = Date.now();
   }, {passive: true});
 
@@ -2335,7 +2334,7 @@ function initSwipe() {
     const target = e.target;
     if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') return;
 
-    const dy = e.changedTouches[0].clientY - touchStartY;
+    const dx = e.changedTouches[0].clientX - touchStartX;
     const dt = Date.now() - touchStartTime;
 
     if (dt > 400) return;
@@ -2343,11 +2342,18 @@ function initSwipe() {
     const sheet = document.getElementById('sheet');
     const overlay = document.getElementById('sheetOverlay');
 
-    if (touchStartY > window.innerHeight - 100 && dy < -30) {
+    // Swipe from left edge (dalam 50px dari kiri) ke kanan > 40px
+    if (touchStartX < 50 && dx > 40) {
       if (!sheet.classList.contains('open')) {
         openSheet();
         e.preventDefault();
       }
+    }
+
+    // Swipe dari kiri ke kanan di area sheet untuk close (dari dalam sheet)
+    if (sheet.classList.contains('open') && dx < -40) {
+      closeSheet();
+      e.preventDefault();
     }
   }, {passive: false});
 }

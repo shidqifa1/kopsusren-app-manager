@@ -222,7 +222,7 @@ body {
 }
 
 /* ============================
-   BOTTOM SHEET NAV (iOS-style)
+   LEFT DRAWER NAV
    ============================ */
 .sheet-overlay {
   display: none;
@@ -244,45 +244,37 @@ body {
 
 .sheet {
   position: fixed;
-  bottom: 0;
+  top: 0;
   left: 0;
-  right: 0;
+  bottom: 0;
+  width: 280px;
+  max-width: 80vw;
   z-index: 401;
   background: var(--glass-bg);
   backdrop-filter: var(--glass-blur-lg);
   -webkit-backdrop-filter: var(--glass-blur-lg);
-  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
-  border-top: 1px solid var(--glass-border);
-  box-shadow: 0 -8px 40px rgba(0, 0, 0, 0.1);
-  max-height: 85vh;
+  border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
+  border-right: 1px solid var(--glass-border);
+  box-shadow: 4px 0 40px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
-  transform: translateY(100%);
+  transform: translateX(-100%);
   transition: transform .4s cubic-bezier(.22, 1, .36, 1);
-  padding-bottom: var(--tab-safe-area);
+  padding-top: var(--top-safe-area);
 }
 
 .sheet.open {
-  transform: translateY(0);
-}
-
-.sheet-handle {
-  width: 36px;
-  height: 4px;
-  background: var(--abu3);
-  border-radius: 2px;
-  margin: 10px auto 0;
-  flex-shrink: 0;
+  transform: translateX(0);
 }
 
 .sheet-header {
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px 8px;
+  padding: 60px 20px 8px;
 }
 
 .sheet-title {
-  font-size: 18px;
+  font-size: 20px;
   font-weight: 700;
   color: var(--coklat);
 }
