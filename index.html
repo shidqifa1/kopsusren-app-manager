@@ -6,7 +6,7 @@
 <meta name="apple-mobile-web-app-capable" content="yes">
 <meta name="mobile-web-app-capable" content="yes">
 <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
-<meta name="theme-color" content="#FBF8F2">
+<meta name="theme-color" content="#2D5A27">
 
 <!-- Warna status bar dan navigasi bar di HP -->
 <meta name="msapplication-navbutton-color" content="#2D5A27">
@@ -73,38 +73,32 @@
 
 <!-- TOP BAR -->
 <div class="top-bar">
-  <div class="top-bar-left">
-    <button class="top-btn" onclick="openSheet()" aria-label="Menu">☰</button>
-    <div class="top-bar-title-group">
-      <h1>☕ Kopi Manager</h1>
-      <div class="subtitle" id="topDate"></div>
-    </div>
-  </div>
-  <div class="top-bar-right">
-    <div class="subtitle" id="syncStatus" style="font-size:10px;"></div>
+  <button class="hamburger" onclick="toggleNav()" aria-label="Buka menu">☰</button>
+  <div class="top-bar-text">
+    <h1>☕ Kopi Manager</h1>
+    <div class="subtitle" id="topDate"></div>
+    <div class="subtitle" id="syncStatus" style="font-size:10px;opacity:.5;margin-top:1px"></div>
   </div>
 </div>
 
-<!-- LEFT DRAWER NAV -->
-<div class="sheet-overlay" id="sheetOverlay" onclick="closeSheet()"></div>
-<div class="sheet" id="sheet">
-  <div class="sheet-header">
-    <div class="sheet-title">☕ Menu</div>
-    <button class="sheet-close" onclick="closeSheet()">✕</button>
+<!-- NAV OVERLAY + DRAWER -->
+<div class="nav-overlay" id="navOverlay" onclick="toggleNav()"></div>
+<div class="nav-drawer" id="navDrawer">
+  <div class="nav-header">
+    <h2>☕ Kopi Manager</h2>
+    <p>Sistem Manajemen Usaha Minuman</p>
   </div>
-  <div class="sheet-items">
-    <button class="sheet-item" onclick="closeSheet();goPage('dashboard')"><span class="sheet-item-icon">🏠</span><span class="sheet-item-label">Dashboard</span></button>
-    <button class="sheet-item" onclick="closeSheet();goPage('penjualan')"><span class="sheet-item-icon">🛒</span><span class="sheet-item-label">Catat Penjualan</span></button>
-    <button class="sheet-item" onclick="closeSheet();goPage('riwayat')"><span class="sheet-item-icon">📋</span><span class="sheet-item-label">Riwayat Penjualan</span></button>
-    <button class="sheet-item" onclick="closeSheet();goPage('kalkulator')"><span class="sheet-item-icon">🧮</span><span class="sheet-item-label">Kalkulator Produksi</span></button>
-    <button class="sheet-item" onclick="closeSheet();goPage('stok')"><span class="sheet-item-icon">📦</span><span class="sheet-item-label">Stok &amp; Bahan Baku</span></button>
-    <button class="sheet-item" onclick="closeSheet();goPage('resep')"><span class="sheet-item-icon">📝</span><span class="sheet-item-label">Resep Menu</span></button>
-    <button class="sheet-item" onclick="closeSheet();goPage('kas')"><span class="sheet-item-icon">💰</span><span class="sheet-item-label">Kas Usaha</span></button>
-    <button class="sheet-item" onclick="closeSheet();goPage('pengeluaran')"><span class="sheet-item-icon">💸</span><span class="sheet-item-label">Belanja &amp; Pengeluaran</span></button>
-    <button class="sheet-item" onclick="closeSheet();goPage('laporan')"><span class="sheet-item-icon">📊</span><span class="sheet-item-label">Laporan Harian</span></button>
-    <button class="sheet-item" onclick="closeSheet();goPage('pengaturan')"><span class="sheet-item-icon">⚙️</span><span class="sheet-item-label">Pengaturan &amp; Backup</span></button>
-    <button class="sheet-item sheet-item-logout" onclick="closeSheet();doLogout()"><span class="sheet-item-icon">🚪</span><span class="sheet-item-label">Keluar</span></button>
-  </div>
+  <div class="nav-item active" onclick="goPage('dashboard')"><span class="nav-icon">🏠</span>Dashboard</div>
+  <div class="nav-item" onclick="goPage('penjualan')"><span class="nav-icon">🛒</span>Catat Penjualan</div>
+  <div class="nav-item" onclick="goPage('riwayat')"><span class="nav-icon">📋</span>Riwayat Penjualan</div>
+  <div class="nav-item" onclick="goPage('kalkulator')"><span class="nav-icon">🧮</span>Kalkulator Produksi</div>
+  <div class="nav-item" onclick="goPage('stok')"><span class="nav-icon">📦</span>Stok & Bahan Baku</div>
+  <div class="nav-item" onclick="goPage('resep')"><span class="nav-icon">📝</span>Resep Menu</div>
+  <div class="nav-item" onclick="goPage('kas')"><span class="nav-icon">💰</span>Kas Usaha</div>
+  <div class="nav-item" onclick="goPage('pengeluaran')"><span class="nav-icon">💸</span>Belanja & Pengeluaran</div>
+  <div class="nav-item" onclick="goPage('laporan')"><span class="nav-icon">📊</span>Laporan Harian</div>
+  <div class="nav-item" onclick="goPage('pengaturan')"><span class="nav-icon">⚙️</span>Pengaturan & Backup</div>
+  <div class="nav-item logout" onclick="doLogout()"><span class="nav-icon">🚪</span>Keluar</div>
 </div>
 
 <!-- ============== DASHBOARD ============== -->
@@ -459,35 +453,6 @@
     </p>
   </div>
   <div class="page-bottom"></div>
-</div>
-
-<!-- ============== BOTTOM TAB BAR ============== -->
-<div class="tab-bar" id="tabBar">
-  <button class="tab-item active" data-tab="dashboard" onclick="switchTab('dashboard')">
-    <div class="tab-indicator"></div>
-    <span class="tab-icon">🏠</span>
-    <span class="tab-label">Dashboard</span>
-  </button>
-  <button class="tab-item" data-tab="penjualan" onclick="switchTab('penjualan')">
-    <div class="tab-indicator"></div>
-    <span class="tab-icon">🛒</span>
-    <span class="tab-label">Jual</span>
-  </button>
-  <button class="tab-item" data-tab="stok" onclick="switchTab('stok')">
-    <div class="tab-indicator"></div>
-    <span class="tab-icon">📦</span>
-    <span class="tab-label">Stok</span>
-  </button>
-  <button class="tab-item" data-tab="kas" onclick="switchTab('kas')">
-    <div class="tab-indicator"></div>
-    <span class="tab-icon">💰</span>
-    <span class="tab-label">Kas</span>
-  </button>
-  <button class="tab-item" data-tab="laporan" onclick="switchTab('laporan')">
-    <div class="tab-indicator"></div>
-    <span class="tab-icon">📊</span>
-    <span class="tab-label">Laporan</span>
-  </button>
 </div>
 
 <!-- ============== MODALS ============== -->
@@ -1077,45 +1042,29 @@ function hideLoading() {
 }
 
 // ============= NAVIGATION =============
-function openSheet() {
-  const s = document.getElementById('sheet');
-  const o = document.getElementById('sheetOverlay');
-  s.style.transition = '';
-  s.style.transform = '';
-  o.style.transition = '';
-  o.style.opacity = '';
-  o.classList.add('open');
-  s.classList.add('open');
+function toggleNav() {
+  document.getElementById('navDrawer').classList.toggle('open');
+  document.getElementById('navOverlay').classList.toggle('open');
 }
-function closeSheet() {
-  const s = document.getElementById('sheet');
-  const o = document.getElementById('sheetOverlay');
-  s.style.transition = '';
-  s.style.transform = '';
-  o.style.transition = '';
-  o.style.opacity = '';
-  o.classList.remove('open');
-  s.classList.remove('open');
-}
-
-const TAB_PAGES = ['dashboard', 'penjualan', 'stok', 'kas', 'laporan'];
-
-function switchTab(id) {
-  document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-  document.querySelector(`.tab-item[data-tab="${id}"]`).classList.add('active');
-  goPage(id);
-}
-
 function goPage(id) {
   document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
   document.getElementById('page-'+id).classList.add('active');
-
-  if (TAB_PAGES.includes(id)) {
-    document.querySelectorAll('.tab-item').forEach(t => t.classList.remove('active'));
-    const tab = document.querySelector(`.tab-item[data-tab="${id}"]`);
-    if (tab) tab.classList.add('active');
-  }
-
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>{
+    if(n.textContent.trim().includes(
+      id==='dashboard'?'Dashboard':
+      id==='penjualan'?'Catat Penjualan':
+      id==='riwayat'?'Riwayat':
+      id==='kalkulator'?'Kalkulator':
+      id==='stok'?'Stok':
+      id==='resep'?'Resep':
+      id==='kas'?'Kas Usaha':
+      id==='pengeluaran'?'Belanja':
+      id==='laporan'?'Laporan':
+      id==='pengaturan'?'Pengaturan':''
+    )) n.classList.add('active');
+  });
+  toggleNav();
   renderPage(id);
 }
 
@@ -2332,82 +2281,52 @@ function downloadCSV(rows, filename) {
   URL.revokeObjectURL(url);
 }
 
-// ============= SWIPE GESTURE LEFT DRAWER =============
+// ============= SWIPE GESTURE DRAWER =============
 function initSwipe() {
-  let startX = 0, startY = 0;
-  let tracking = false;
-  let sheet = document.getElementById('sheet');
-  let overlay = document.getElementById('sheetOverlay');
+  let touchStartX = 0;
+  let touchStartY = 0;
+  let touchStartTime = 0;
 
   document.addEventListener('touchstart', e => {
-    const t = e.target;
-    if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT') return;
-    startX = e.touches[0].clientX;
-    startY = e.touches[0].clientY;
-    tracking = true;
-  }, {passive: true});
-
-  document.addEventListener('touchmove', e => {
-    if (!tracking) return;
-    const cx = e.touches[0].clientX;
-    const cy = e.touches[0].clientY;
-    const dx = cx - startX;
-    const dy = cy - startY;
-
-    // skip if mostly vertical scroll
-    if (Math.abs(dy) > Math.abs(dx) * 2) {
-      tracking = false;
+    // Skip jika di input form
+    const target = e.target;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
       return;
     }
-
-    const isOpen = sheet.classList.contains('open');
-
-    if (!isOpen && startX < 50 && dx > 0) {
-      // Drag open from left edge
-      const w = sheet.offsetWidth;
-      let pct = Math.min(dx / w, 1);
-      sheet.style.transition = 'none';
-      sheet.style.transform = 'translate3d(' + (-w * (1 - pct)) + 'px, 0, 0)';
-      overlay.style.display = 'block';
-      overlay.style.opacity = pct * 0.35;
-      e.preventDefault();
-    } else if (isOpen && dx < 0) {
-      // Drag close
-      const w = sheet.offsetWidth;
-      let pct = Math.min(-dx / w, 1);
-      sheet.style.transition = 'none';
-      sheet.style.transform = 'translate3d(' + (-w * pct) + 'px, 0, 0)';
-      overlay.style.opacity = 0.35 * (1 - pct);
-      e.preventDefault();
-    }
-  }, {passive: false});
+    touchStartX = e.touches[0].clientX;
+    touchStartY = e.touches[0].clientY;
+    touchStartTime = Date.now();
+  }, {passive: true});
 
   document.addEventListener('touchend', e => {
-    if (!tracking) return;
-    tracking = false;
-    const dx = e.changedTouches[0].clientX - startX;
-    const isOpen = sheet.classList.contains('open');
-
-    sheet.style.transition = '';
-    overlay.style.transition = '';
-
-    if (!isOpen && startX < 50) {
-      if (dx > 40) {
-        openSheet();
-      } else {
-        sheet.style.transform = '';
-        overlay.style.display = '';
-        overlay.style.opacity = '';
+    const target = e.target;
+    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') {
+      return;
+    }
+    
+    const dx = e.changedTouches[0].clientX - touchStartX;
+    const dy = Math.abs(e.changedTouches[0].clientY - touchStartY);
+    const dt = Date.now() - touchStartTime;
+    const absDx = Math.abs(dx);
+    
+    if (dt < 300 && absDx > 40 && absDx > dy) {
+      const drawer = document.getElementById('navDrawer');
+      const overlay = document.getElementById('navOverlay');
+      
+      // Swipe kanan buka
+      if (dx > 40 && !drawer.classList.contains('open')) {
+        drawer.classList.add('open');
+        overlay.classList.add('open');
+        e.preventDefault();
       }
-    } else if (isOpen) {
-      if (dx < -40) {
-        closeSheet();
-      } else {
-        sheet.style.transform = '';
-        overlay.style.opacity = '';
+      // Swipe kiri tutup
+      else if (dx < -40 && drawer.classList.contains('open')) {
+        drawer.classList.remove('open');
+        overlay.classList.remove('open');
+        e.preventDefault();
       }
     }
-  }, {passive: true});
+  }, {passive: false});
 }
 
 // ============= AUTH =============
