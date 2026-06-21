@@ -74,12 +74,14 @@
 <!-- TOP BAR -->
 <div class="top-bar">
   <div class="top-bar-left">
-    <h1>☕ Kopi Manager</h1>
-    <div class="subtitle" id="topDate"></div>
+    <button class="top-btn" onclick="openSheet()" aria-label="Menu">☰</button>
+    <div class="top-bar-title-group">
+      <h1>☕ Kopi Manager</h1>
+      <div class="subtitle" id="topDate"></div>
+    </div>
   </div>
   <div class="top-bar-right">
     <div class="subtitle" id="syncStatus" style="font-size:10px;"></div>
-    <button class="top-btn" onclick="openSheet()" aria-label="Menu">⋯</button>
   </div>
 </div>
 
@@ -1076,12 +1078,24 @@ function hideLoading() {
 
 // ============= NAVIGATION =============
 function openSheet() {
-  document.getElementById('sheetOverlay').classList.add('open');
-  document.getElementById('sheet').classList.add('open');
+  const s = document.getElementById('sheet');
+  const o = document.getElementById('sheetOverlay');
+  s.style.transition = '';
+  s.style.transform = '';
+  o.style.transition = '';
+  o.style.opacity = '';
+  o.classList.add('open');
+  s.classList.add('open');
 }
 function closeSheet() {
-  document.getElementById('sheetOverlay').classList.remove('open');
-  document.getElementById('sheet').classList.remove('open');
+  const s = document.getElementById('sheet');
+  const o = document.getElementById('sheetOverlay');
+  s.style.transition = '';
+  s.style.transform = '';
+  o.style.transition = '';
+  o.style.opacity = '';
+  o.classList.remove('open');
+  s.classList.remove('open');
 }
 
 const TAB_PAGES = ['dashboard', 'penjualan', 'stok', 'kas', 'laporan'];
@@ -2320,42 +2334,80 @@ function downloadCSV(rows, filename) {
 
 // ============= SWIPE GESTURE LEFT DRAWER =============
 function initSwipe() {
-  let touchStartX = 0;
-  let touchStartTime = 0;
+  let startX = 0, startY = 0;
+  let tracking = false;
+  let sheet = document.getElementById('sheet');
+  let overlay = document.getElementById('sheetOverlay');
 
   document.addEventListener('touchstart', e => {
-    const target = e.target;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') return;
-    touchStartX = e.touches[0].clientX;
-    touchStartTime = Date.now();
+    const t = e.target;
+    if (t.tagName === 'INPUT' || t.tagName === 'TEXTAREA' || t.tagName === 'SELECT') return;
+    startX = e.touches[0].clientX;
+    startY = e.touches[0].clientY;
+    tracking = true;
   }, {passive: true});
 
-  document.addEventListener('touchend', e => {
-    const target = e.target;
-    if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.tagName === 'SELECT') return;
+  document.addEventListener('touchmove', e => {
+    if (!tracking) return;
+    const cx = e.touches[0].clientX;
+    const cy = e.touches[0].clientY;
+    const dx = cx - startX;
+    const dy = cy - startY;
 
-    const dx = e.changedTouches[0].clientX - touchStartX;
-    const dt = Date.now() - touchStartTime;
-
-    if (dt > 400) return;
-
-    const sheet = document.getElementById('sheet');
-    const overlay = document.getElementById('sheetOverlay');
-
-    // Swipe from left edge (dalam 50px dari kiri) ke kanan > 40px
-    if (touchStartX < 50 && dx > 40) {
-      if (!sheet.classList.contains('open')) {
-        openSheet();
-        e.preventDefault();
-      }
+    // skip if mostly vertical scroll
+    if (Math.abs(dy) > Math.abs(dx) * 2) {
+      tracking = false;
+      return;
     }
 
-    // Swipe dari kiri ke kanan di area sheet untuk close (dari dalam sheet)
-    if (sheet.classList.contains('open') && dx < -40) {
-      closeSheet();
+    const isOpen = sheet.classList.contains('open');
+
+    if (!isOpen && startX < 50 && dx > 0) {
+      // Drag open from left edge
+      const w = sheet.offsetWidth;
+      let pct = Math.min(dx / w, 1);
+      sheet.style.transition = 'none';
+      sheet.style.transform = 'translate3d(' + (-w * (1 - pct)) + 'px, 0, 0)';
+      overlay.style.display = 'block';
+      overlay.style.opacity = pct * 0.35;
+      e.preventDefault();
+    } else if (isOpen && dx < 0) {
+      // Drag close
+      const w = sheet.offsetWidth;
+      let pct = Math.min(-dx / w, 1);
+      sheet.style.transition = 'none';
+      sheet.style.transform = 'translate3d(' + (-w * pct) + 'px, 0, 0)';
+      overlay.style.opacity = 0.35 * (1 - pct);
       e.preventDefault();
     }
   }, {passive: false});
+
+  document.addEventListener('touchend', e => {
+    if (!tracking) return;
+    tracking = false;
+    const dx = e.changedTouches[0].clientX - startX;
+    const isOpen = sheet.classList.contains('open');
+
+    sheet.style.transition = '';
+    overlay.style.transition = '';
+
+    if (!isOpen && startX < 50) {
+      if (dx > 40) {
+        openSheet();
+      } else {
+        sheet.style.transform = '';
+        overlay.style.display = '';
+        overlay.style.opacity = '';
+      }
+    } else if (isOpen) {
+      if (dx < -40) {
+        closeSheet();
+      } else {
+        sheet.style.transform = '';
+        overlay.style.opacity = '';
+      }
+    }
+  }, {passive: true});
 }
 
 // ============= AUTH =============

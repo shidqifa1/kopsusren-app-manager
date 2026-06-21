@@ -75,11 +75,9 @@ body {
    IOS-STYLE TOP BAR
    ============================ */
 .top-bar {
-  background: var(--glass-bg2);
-  backdrop-filter: var(--glass-blur);
-  -webkit-backdrop-filter: var(--glass-blur);
+  background: rgba(255, 253, 247, 0.92);
   border-bottom: 1px solid var(--cream3);
-  padding: calc(12px + var(--top-safe-area)) 20px 10px;
+  padding: calc(12px + var(--top-safe-area)) 16px 10px;
   display: flex;
   align-items: center;
   justify-content: space-between;
@@ -88,24 +86,31 @@ body {
   z-index: 100;
 }
 
+.top-bar-title-group {
+  display: flex;
+  flex-direction: column;
+  gap: 0;
+}
+
 .top-bar h1 {
-  font-size: 22px;
+  font-size: 20px;
   font-weight: 700;
   letter-spacing: -0.3px;
   color: var(--coklat);
+  line-height: 1.2;
 }
 
 .top-bar .subtitle {
   font-size: 11px;
   font-weight: 500;
   color: var(--abu);
-  margin-top: 1px;
+  line-height: 1.2;
 }
 
 .top-bar-left {
   display: flex;
   align-items: center;
-  gap: 12px;
+  gap: 10px;
   flex: 1;
 }
 
@@ -117,9 +122,7 @@ body {
 }
 
 .top-btn {
-  background: rgba(255,255,255,0.7);
-  backdrop-filter: blur(8px);
-  -webkit-backdrop-filter: blur(8px);
+  background: rgba(232, 223, 208, 0.4);
   border: 1px solid var(--cream3);
   width: 36px;
   height: 36px;
@@ -129,8 +132,9 @@ body {
   justify-content: center;
   font-size: 17px;
   cursor: pointer;
-  transition: .2s;
+  transition: background .15s;
   color: var(--coklat);
+  flex-shrink: 0;
 }
 
 .top-btn:active {
@@ -147,9 +151,7 @@ body {
   left: 0;
   right: 0;
   z-index: 500;
-  background: rgba(255, 253, 247, 0.82);
-  backdrop-filter: blur(30px);
-  -webkit-backdrop-filter: blur(30px);
+  background: rgba(251, 248, 242, 0.95);
   border-top: 1px solid var(--cream3);
   padding: 6px calc(12px + var(--tab-safe-area));
   padding-bottom: calc(6px + var(--tab-safe-area));
@@ -250,16 +252,16 @@ body {
   width: 280px;
   max-width: 80vw;
   z-index: 401;
-  background: var(--glass-bg);
-  backdrop-filter: var(--glass-blur-lg);
-  -webkit-backdrop-filter: var(--glass-blur-lg);
+  background: #FBF8F2;
   border-radius: 0 var(--radius-lg) var(--radius-lg) 0;
-  border-right: 1px solid var(--glass-border);
+  border-right: 1px solid rgba(232, 223, 208, 0.6);
   box-shadow: 4px 0 40px rgba(0, 0, 0, 0.1);
   overflow-y: auto;
-  transform: translateX(-100%);
-  transition: transform .4s cubic-bezier(.22, 1, .36, 1);
+  -webkit-overflow-scrolling: touch;
+  transform: translate3d(-100%, 0, 0);
+  transition: transform .35s cubic-bezier(.22, 1, .36, 1);
   padding-top: var(--top-safe-area);
+  will-change: transform;
 }
 
 .sheet.open {
